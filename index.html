@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fae8ed">
+  <title>У меня есть один вопрос ♡</title>
+  <style>
+    :root { color-scheme: light; --ink: #613c49; --muted: #99737e; --pink: #e84287; }
+    * { box-sizing: border-box; }
+    body { margin: 0; position: relative; min-height: 100vh; min-height: 100svh; padding: 28px 18px; display: grid; place-items: center; background: #ffe2ee; color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body::before, body::after { content: ""; position: fixed; width: 260px; height: 260px; border-radius: 50%; pointer-events: none; z-index: -1; filter: blur(30px); }
+    body::before { left: -90px; top: -70px; background: #f7cbd8; }
+    body::after { right: -100px; bottom: -80px; background: #edd9ef; }
+    .invitation { position: relative; width: min(100%, 520px); }
+    .card { position: relative; z-index: 1; width: 100%; padding: 44px 34px 32px; border: 1px solid #ffffffb5; border-radius: 32px; background: #fffbf8f2; box-shadow: 0 24px 80px #9f53601a, 0 4px 15px #9f536008; text-align: center; animation: arrive .65s ease both; }
+    .heart-orbit { position: absolute; inset: -34px; pointer-events: none; user-select: none; }
+    .heart-orbit span { position: absolute; left: var(--x); top: var(--y); color: #ee609a; font-size: var(--size); opacity: .5; animation: float-heart var(--duration) ease-in-out infinite; animation-delay: var(--delay); }
+    #question-title { margin-bottom: 28px; }
+    .eyebrow { margin: 0 0 28px; text-transform: uppercase; letter-spacing: .21em; font-size: 10px; font-weight: 700; color: var(--muted); }
+    .heart { width: 88px; height: 88px; margin: 0 auto 26px; display: grid; place-items: center; border-radius: 28px; background: #f9e2e9; transform: rotate(-7deg); }
+    .heart svg { width: 45px; height: 45px; fill: #d87a97; animation: heartbeat 3s ease-in-out infinite; }
+    h1, h2 { margin: 0; font-size: clamp(28px, 6.5vw, 37px); letter-spacing: -.045em; line-height: 1.17; font-weight: 650; }
+    .subtitle { margin: 16px 0 28px; line-height: 1.65; color: var(--muted); font-size: 14px; }
+    .actions { display: flex; justify-content: center; gap: 12px; }
+    button { min-height: 50px; padding: 13px 30px; border-radius: 16px; border: 0; font: inherit; font-size: 15px; font-weight: 650; cursor: pointer; touch-action: manipulation; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #b85b80; outline-offset: 4px; }
+    .primary { background: linear-gradient(135deg, #ee609a, #e84287); color: white; box-shadow: 0 8px 20px #cd638530; transition: background .2s, transform .2s, box-shadow .2s; }
+    .primary:hover { background: #d53076; transform: translateY(-2px); box-shadow: 0 12px 24px #cd638538; }
+    .primary:active { transform: translateY(0); }
+    .primary, .time-apply { border-radius: 20px; box-shadow: 0 5px 0 #c33c711c, 0 10px 24px #e8428724; }
+    .cat-button { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 62px; width: 112px; padding: 12px 16px; isolation: isolate; }
+    .cat-icon { width: 36px; height: 36px; flex: 0 0 36px; display: inline-flex; }
+    .cat-icon svg { width: 100%; height: 100%; overflow: visible; }
+    .cat-happy { display: none; }
+    #yes-button .cat-happy, #no-button.accepted .cat-happy { display: inline; }
+    #yes-button .cat-shy, #no-button.accepted .cat-shy { display: none; }
+    .cat-button:hover .cat-icon { animation: cat-wiggle .45s ease both; }
+    @keyframes cat-wiggle { 0%, 100% { transform: rotate(0); } 35% { transform: rotate(-12deg); } 70% { transform: rotate(10deg); } }
+    .primary:disabled { opacity: .65; cursor: wait; transform: none; }
+    .secondary { background: #f3eaed; color: #947782; }
+    #no-button { z-index: 3; background: #fff; color: #873151; border: 2px solid #bd4376; box-shadow: 0 6px 20px #88315140; -webkit-user-select: none; user-select: none; }
+    #no-button.escaped { position: absolute; }
+    .hint { margin: 25px 0 0; font-size: 11px; color: #ad8e97; line-height: 1.5; }
+    [hidden] { display: none !important; }
+    .screen.leaving { animation: leave .18s ease both; pointer-events: none; }
+    .screen.entering { animation: arrive .32s ease both; }
+    form { text-align: left; margin-top: 28px; }
+    .fields { display: grid; grid-template-columns: 1.25fr 1fr; gap: 12px; }
+    label { display: block; font-size: 12px; font-weight: 650; }
+    input { display: block; width: 100%; min-width: 0; height: 52px; margin-top: 8px; padding: 12px; border: 1px solid #ecd8df; border-radius: 14px; background: #fff; color: var(--ink); font: inherit; font-size: 15px; }
+    input:disabled { opacity: .65; }
+    .date-picker { text-align: left; margin-top: 8px; width: 100%; height: 52px; padding: 12px; border: 1px solid #ecd8df; border-radius: 14px; background: #fff; color: var(--ink); display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+    .date-picker span:last-child { color: #df4f8a; font-size: 22px; }
+    .date-picker[aria-expanded="true"] { border-color: #e84287; box-shadow: 0 0 0 3px #e8428712; }
+    .calendar { margin-top: 16px; padding: 16px; border-radius: 22px; border: 1px solid #f4c6d7; background: #fff6fa; box-shadow: 0 12px 30px #d34c7c12; animation: arrive .25s ease both; }
+    .calendar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+    .calendar-head h3 { margin: 0; font-size: 15px; font-weight: 650; text-transform: capitalize; }
+    .calendar-nav { width: 38px; min-height: 38px; padding: 0; border-radius: 12px; background: #ffe3ef; color: #a63e68; font-size: 24px; }
+    .calendar-nav:disabled { opacity: .3; cursor: default; }
+    .weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+    .weekdays { margin-bottom: 6px; text-align: center; font-size: 10px; color: #ad7c90; }
+    .calendar-day { min-height: 40px; padding: 0; border-radius: 12px; background: transparent; color: var(--ink); font-size: 13px; font-weight: 500; }
+    .calendar-day:hover:not(:disabled) { background: #ffe0ec; }
+    .calendar-day.today { box-shadow: inset 0 0 0 1px #e89db8; }
+    .calendar-day.selected { background: #e84287; color: #fff; box-shadow: 0 4px 10px #e8428733; }
+    .calendar-day.selected:hover { background: #d53076; }
+    .calendar-day:disabled { opacity: .25; cursor: default; }
+    .calendar-note { margin: 12px 0 0; text-align: center; color: #ac6b86; font-size: 11px; }
+    @media (max-width: 380px) { .calendar { padding: 10px; } .calendar-day { min-height: 36px; } }
+    .submit { width: 100%; margin-top: 20px; }
+    .error { color: #a43b59; font-size: 13px; line-height: 1.5; margin: 14px 0 0; }
+    .receipt { margin: 24px 0 0; padding: 17px; border: 1px dashed #e4b9c8; border-radius: 16px; color: var(--ink); line-height: 1.6; font-size: 15px; }
+    .card.gift-mode { background: transparent; border-color: transparent; box-shadow: none; padding: 24px 12px; }
+    .gift-label { font-size: 12px; text-transform: uppercase; letter-spacing: .2em; color: #a4436a; margin: 0 0 40px; }
+    .envelope { position: relative; width: min(100%, 380px); height: 240px; margin: 0 auto; perspective: 1000px; isolation: isolate; }
+    .envelope-back { position: absolute; inset: 0; border-radius: 18px; background: #d83b7c; box-shadow: 0 22px 55px #be37603b; }
+    .envelope-pocket { position: absolute; inset: 0; z-index: 3; border-radius: 18px; background: linear-gradient(145deg, #ff87b8, #f65c9e); clip-path: polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%); pointer-events: none; }
+    .envelope-fold { position: absolute; inset: 0; z-index: 3; border-radius: 18px; background: #fc73ac; clip-path: polygon(0 100%, 50% 48%, 100% 100%); pointer-events: none; }
+    .flap { position: absolute; inset: 0 0 auto; width: 100%; height: 132px; z-index: 4; padding: 0; border-radius: 18px 18px 0 0; background: linear-gradient(#ff9ac4, #fb78ad); clip-path: polygon(0 0, 100% 0, 50% 100%); transform-origin: top; transition: transform .65s cubic-bezier(.2,.7,.2,1); }
+    .flap:disabled { cursor: default; }
+    .envelope.unsealed .flap { cursor: pointer; }
+    .envelope.open .flap { transform: rotateX(180deg); z-index: 1; pointer-events: none; }
+    .seal { position: absolute; left: calc(50% - 32px); top: 100px; width: 64px; height: 64px; padding: 0; z-index: 5; border-radius: 50%; background: #e63878; color: #fff3f8; font-size: 32px; border: 4px solid #f65490; box-shadow: 0 5px 0 #b82b6045, inset 0 0 0 2px #ff83b044; transition: transform .35s, opacity .35s; }
+    .seal:hover { transform: rotate(-8deg) scale(1.08); }
+    .seal.removed { transform: translate(25px, -65px) rotate(30deg) scale(.7); opacity: 0; pointer-events: none; }
+    .letter-peek { position: absolute; z-index: 2; inset: 15px 20px 20px; border-radius: 12px; background: #fff9f3; box-shadow: 0 2px 15px #92285324; transition: transform .55s ease; display: grid; align-content: start; justify-items: center; padding: 22px 12px; }
+    .letter-peek::after { content: '♡'; font-size: 56px; color: #ed6097; margin-top: 14px; }
+    .envelope.open .letter-peek { transform: translateY(-65px); }
+    .envelope.extracting .letter-peek { transform: translateY(-180px) rotate(-5deg); opacity: 0; transition: transform .45s, opacity .45s; }
+    .pull-tab { min-height: 44px; padding: 9px 16px; border: 1px dashed #efb5cb; background: #ffe6ef; color: #ac456e; font-size: 12px; opacity: 0; visibility: hidden; touch-action: none; user-select: none; }
+    .envelope.open .pull-tab { opacity: 1; visibility: visible; }
+    .step-hint { margin: 32px 0 0; color: #9f4c6c; font-size: 14px; min-height: 42px; line-height: 1.6; }
+    .step-count { margin: 8px 0 0; color: #af7089; font-size: 11px; letter-spacing: .15em; }
+    #yes-button { transition: background .2s, transform .2s, box-shadow .2s, padding .45s, font-size .45s; }
+    #yes-button { transform: scale(var(--yes-scale, 1)); }
+    #yes-button:hover { transform: scale(var(--yes-scale, 1)) translateY(-2px); }
+    #no-button { width: 112px; padding-left: 10px; padding-right: 10px; }
+    #no-button.accepted { background: #e84287; color: #fff; border-color: #e84287; }
+    .burst-layer { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 10; }
+    .burst-heart { position: fixed; z-index: 10; pointer-events: none; color: #ed438c; font-size: 22px; animation: burst .85s ease-out forwards; }
+    @keyframes burst { from { opacity: 1; transform: translate(-50%, -50%) scale(.5); } to { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--spin)) scale(1.25); } }
+    .time-panel { margin-top: 16px; padding: 18px; border: 1px solid #f4c6d7; border-radius: 22px; background: #fff6fa; animation: arrive .25s ease both; }
+    .time-columns { display: flex; justify-content: center; gap: 18px; align-items: center; }
+    .time-column { display: grid; justify-items: center; gap: 8px; }
+    .time-column small { color: #ac6b86; font-size: 11px; }
+    .time-value { min-width: 68px; padding: 12px; background: #ffe1ee; border-radius: 16px; color: #b73d70; font-size: 30px; font-weight: 650; text-align: center; }
+    .time-step { width: 48px; min-height: 40px; padding: 0; border-radius: 12px; color: #b73d70; background: #ffe8f1; font-size: 21px; }
+    .time-colon { color: #d86490; font-size: 30px; }
+    .time-apply { margin-top: 16px; width: 100%; padding: 12px; background: #e84287; color: white; }
+    .time-apply:disabled { opacity: .4; cursor: default; }
+    .time-note { margin: 12px 0 0; color: #a75a7b; font-size: 11px; text-align: center; }
+    @media (max-width: 380px) { .envelope { height: 215px; } .flap { height: 120px; } .seal { top: 88px; } }
+    @keyframes arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes leave { to { opacity: 0; transform: translateY(-8px); } }
+    @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.09); } }
+    @keyframes float-heart { 0%, 100% { transform: translateY(7px) rotate(-12deg) scale(.9); opacity: .3; } 50% { transform: translateY(-11px) rotate(12deg) scale(1.08); opacity: .7; } }
+    @media (max-width: 600px) { .heart-orbit { inset: -20px -6px; } .heart-orbit span { left: clamp(0px, var(--x), calc(100% - 24px)); font-size: calc(var(--size) * .75); } }
+    @media (max-width: 380px) { .card { padding: 34px 22px 27px; } .fields { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="invitation">
+  <div class="heart-orbit" aria-hidden="true">
+    <span style="--x:5%;--y:6%;--size:24px;--duration:4.8s;--delay:-1s">♥</span>
+    <span style="--x:25%;--y:-2%;--size:16px;--duration:5.5s;--delay:-3s">♥</span>
+    <span style="--x:74%;--y:0%;--size:22px;--duration:4.6s;--delay:-2s">♥</span>
+    <span style="--x:96%;--y:15%;--size:18px;--duration:5.8s;--delay:-4s">♥</span>
+    <span style="--x:0%;--y:42%;--size:20px;--duration:5.2s;--delay:-2s">♥</span>
+    <span style="--x:98%;--y:56%;--size:25px;--duration:4.9s;--delay:-1s">♥</span>
+    <span style="--x:3%;--y:83%;--size:17px;--duration:5.7s;--delay:-3s">♥</span>
+    <span style="--x:22%;--y:98%;--size:24px;--duration:5.1s;--delay:-4s">♥</span>
+    <span style="--x:68%;--y:97%;--size:16px;--duration:4.7s;--delay:-2s">♥</span>
+    <span style="--x:93%;--y:90%;--size:20px;--duration:5.4s;--delay:-1s">♥</span>
+  </div>
+  <main class="card gift-mode" id="card">
+    <section id="gift" class="screen" aria-label="Конверт с приглашением">
+      <p class="gift-label">Письмо для тебя</p>
+      <div id="envelope" class="envelope">
+        <div class="envelope-back" aria-hidden="true"></div>
+        <div id="letter-peek" class="letter-peek">
+          <button id="pull-tab" class="pull-tab" type="button" disabled>Вытяни ↑ или нажми</button>
+        </div>
+        <div class="envelope-pocket" aria-hidden="true"></div>
+        <div class="envelope-fold" aria-hidden="true"></div>
+        <button id="flap" class="flap" type="button" aria-label="Раскрыть клапан конверта" disabled></button>
+        <button id="seal" class="seal" type="button" aria-label="Снять печать с конверта">♥</button>
+      </div>
+      <p id="step-hint" class="step-hint" aria-live="polite">Нажми на сердечко, чтобы снять печать</p>
+      <p id="step-count" class="step-count">01 / 03</p>
+    </section>
+
+    <section id="question" class="screen" aria-labelledby="question-title" hidden>
+      <h1 id="question-title" tabindex="-1">Пойдешь со мной гулять?</h1>
+      <div class="actions">
+        <button id="yes-button" class="primary cat-button" type="button"><span class="cat-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <path d="M9 20 8 7q0-3 3-1l10 7h6l10-7q3-2 3 1l-1 13q4 5 3 11c-1 8-9 12-18 12S7 39 6 31q-1-6 3-11Z" fill="#FFF6EA" stroke="#965B69" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="m12 10 1 9 6-3Zm24 0-7 6 6 3Z" fill="#F6B8C9"/>
+          <path d="M22 14v5m4-5v5" stroke="#E7C7B4" stroke-width="2" stroke-linecap="round"/>
+          <ellipse cx="13" cy="31" rx="4" ry="2.5" fill="#F7BDCE"/><ellipse cx="35" cy="31" rx="4" ry="2.5" fill="#F7BDCE"/>
+          <g class="cat-happy" stroke="#965B69" stroke-width="1.8" stroke-linecap="round"><path d="M14 26q3-5 6 0m8 0q3-5 6 0"/></g>
+          <g class="cat-shy" fill="#965B69"><ellipse cx="17" cy="26" rx="1.5" ry="2.2"/><ellipse cx="31" cy="26" rx="1.5" ry="2.2"/></g>
+          <path d="m22 30 2 2 2-2" fill="#CD7C97" stroke="#CD7C97" stroke-linejoin="round"/>
+          <path d="M24 32v2m-4-1q0 4 4 1 4 3 4-1M4 28l6 1m-6 4 6-1m28-3 6-1m-6 4 6 1" stroke="#965B69" stroke-width="1.3" stroke-linecap="round"/>
+        </svg></span><span>Да</span></button>
+        <button id="no-button" class="secondary cat-button" type="button"><span id="no-cat" class="cat-icon" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+          <path d="M9 20 8 7q0-3 3-1l10 7h6l10-7q3-2 3 1l-1 13q4 5 3 11c-1 8-9 12-18 12S7 39 6 31q-1-6 3-11Z" fill="#FFF6EA" stroke="#965B69" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="m12 10 1 9 6-3Zm24 0-7 6 6 3Z" fill="#F6B8C9"/>
+          <path d="M22 14v5m4-5v5" stroke="#E7C7B4" stroke-width="2" stroke-linecap="round"/>
+          <ellipse cx="13" cy="31" rx="4" ry="2.5" fill="#F7BDCE"/><ellipse cx="35" cy="31" rx="4" ry="2.5" fill="#F7BDCE"/>
+          <g class="cat-happy" stroke="#965B69" stroke-width="1.8" stroke-linecap="round"><path d="M14 26q3-5 6 0m8 0q3-5 6 0"/></g>
+          <g class="cat-shy" fill="#965B69"><ellipse cx="17" cy="26" rx="1.5" ry="2.2"/><ellipse cx="31" cy="26" rx="1.5" ry="2.2"/></g>
+          <path d="m22 30 2 2 2-2" fill="#CD7C97" stroke="#CD7C97" stroke-linejoin="round"/>
+          <path d="M24 32v2m-4-1q0 4 4 1 4 3 4-1M4 28l6 1m-6 4 6-1m28-3 6-1m-6 4 6 1" stroke="#965B69" stroke-width="1.3" stroke-linecap="round"/>
+        </svg></span><span id="no-label">Нет</span></button>
+      </div>
+    </section>
+
+    <section id="schedule" class="screen" aria-labelledby="schedule-title" hidden>
+      <h2 id="schedule-title" tabindex="-1">Я и не сомневался, когда тебе удобно?</h2>
+      <form id="date-form">
+        <div class="fields">
+          <div><label id="date-label">День</label><input id="date" name="date" type="hidden"><button id="date-picker" class="date-picker" type="button" aria-labelledby="date-label date-caption" aria-controls="calendar" aria-expanded="false"><span id="date-caption">Выбери день</span><span aria-hidden="true">♡</span></button></div>
+          <div><label id="time-label">Время</label><input id="time" name="time" type="hidden"><button id="time-picker" class="date-picker" type="button" aria-labelledby="time-label time-caption" aria-controls="time-panel" aria-expanded="false"><span id="time-caption">Выбери время</span><span aria-hidden="true">♡</span></button></div>
+        </div>
+        <div id="calendar" class="calendar" role="group" aria-label="Выбор даты прогулки" hidden>
+          <div class="calendar-head"><button id="previous-month" class="calendar-nav" type="button" aria-label="Предыдущий месяц">‹</button><h3 id="calendar-month" aria-live="polite"></h3><button id="next-month" class="calendar-nav" type="button" aria-label="Следующий месяц">›</button></div>
+          <div class="weekdays" aria-hidden="true"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+          <div id="calendar-grid" class="calendar-grid"></div>
+          <p class="calendar-note">Выбирай день в ближайшие две недели ♡</p>
+        </div>
+        <div id="time-panel" class="time-panel" role="group" aria-label="Выбор времени прогулки" hidden>
+          <div class="time-columns">
+            <div class="time-column"><small>Часы</small><button type="button" class="time-step" id="hour-up" aria-label="На час позже">⌃</button><output id="hour-value" class="time-value" aria-live="polite">18</output><button type="button" class="time-step" id="hour-down" aria-label="На час раньше">⌄</button></div>
+            <span class="time-colon" aria-hidden="true">:</span>
+            <div class="time-column"><small>Минуты</small><button type="button" class="time-step" id="minute-up" aria-label="На пять минут позже">⌃</button><output id="minute-value" class="time-value" aria-live="polite">00</output><button type="button" class="time-step" id="minute-down" aria-label="На пять минут раньше">⌄</button></div>
+          </div>
+          <p id="time-note" class="time-note">Время в твоём часовом поясе</p>
+          <button id="time-apply" class="time-apply" type="button">Выбрать время ♡</button>
+        </div>
+        <button id="submit-button" class="primary submit" type="submit">Подтвердить</button>
+        <p id="error" class="error" role="alert" hidden></p>
+      </form>
+      <p class="hint">Дата и время отправятся мне в Telegram.</p>
+    </section>
+
+    <section id="success" class="screen" aria-labelledby="success-title" hidden>
+      <h2 id="success-title" tabindex="-1">Договорились, жду ❤️</h2>
+      <p id="receipt" class="receipt"></p>
+    </section>
+  </main>
+  </div>
+  <script>
+    'use strict';
+
+    const question = document.getElementById('question');
+    const schedule = document.getElementById('schedule');
+    const success = document.getElementById('success');
+    const yesButton = document.getElementById('yes-button');
+    const noButton = document.getElementById('no-button');
+    const form = document.getElementById('date-form');
+    const dateInput = document.getElementById('date');
+    const timeInput = document.getElementById('time');
+    const submitButton = document.getElementById('submit-button');
+    const errorMessage = document.getElementById('error');
+    const receipt = document.getElementById('receipt');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let transitioning = false;
+    let sending = false;
+    let escapeCount = 0;
+    const card = document.getElementById('card');
+    const gift = document.getElementById('gift');
+    const envelope = document.getElementById('envelope');
+    const seal = document.getElementById('seal');
+    const flap = document.getElementById('flap');
+    const pullTab = document.getElementById('pull-tab');
+    const letterPeek = document.getElementById('letter-peek');
+    const stepHint = document.getElementById('step-hint');
+    const stepCount = document.getElementById('step-count');
+    let giftStep = 0;
+    let dragging = null;
+    let suppressClick = false;
+    const pause = ms => new Promise(resolve => setTimeout(resolve, reducedMotion.matches ? 0 : ms));
+
+    seal.addEventListener('click', async () => {
+      if (giftStep !== 0) return;
+      giftStep = 1;
+      seal.disabled = true;
+      seal.classList.add('removed');
+      envelope.classList.add('unsealed');
+      await pause(350);
+      seal.hidden = true;
+      flap.disabled = false;
+      stepHint.textContent = 'Теперь раскрой конверт';
+      stepCount.textContent = '02 / 03';
+      flap.focus({ preventScroll: true });
+    });
+    flap.addEventListener('click', async () => {
+      if (giftStep !== 1 || flap.disabled) return;
+      giftStep = 2;
+      flap.disabled = true;
+      envelope.classList.add('open');
+      await pause(650);
+      pullTab.disabled = false;
+      stepHint.textContent = 'Вытяни записку вверх или нажми на неё';
+      stepCount.textContent = '03 / 03';
+      pullTab.focus({ preventScroll: true });
+    });
+    async function revealInvitation() {
+      if (giftStep !== 2 || pullTab.disabled) return;
+      giftStep = 3;
+      dragging = null;
+      pullTab.disabled = true;
+      letterPeek.style.removeProperty('transform');
+      envelope.classList.add('extracting');
+      await pause(450);
+      card.classList.remove('gift-mode');
+      await showScreen(gift, question);
+    }
+    pullTab.addEventListener('click', () => {
+      if (suppressClick) { suppressClick = false; return; }
+      revealInvitation();
+    });
+    pullTab.addEventListener('pointerdown', event => {
+      if (giftStep !== 2 || pullTab.disabled || event.button !== 0) return;
+      suppressClick = false;
+      dragging = { id: event.pointerId, y: event.clientY, distance: 0 };
+      pullTab.setPointerCapture(event.pointerId);
+      letterPeek.style.transition = 'none';
+    });
+    pullTab.addEventListener('pointermove', event => {
+      if (!dragging || dragging.id !== event.pointerId) return;
+      dragging.distance = Math.max(0, dragging.y - event.clientY);
+      letterPeek.style.transform = `translateY(${-65 - Math.min(dragging.distance, 150)}px)`;
+    });
+    function finishDrag(event, cancelled = false) {
+      if (!dragging || dragging.id !== event.pointerId) return;
+      const distance = dragging.distance;
+      dragging = null;
+      letterPeek.style.removeProperty('transition');
+      letterPeek.style.removeProperty('transform');
+      if (pullTab.hasPointerCapture(event.pointerId)) pullTab.releasePointerCapture(event.pointerId);
+      suppressClick = cancelled || distance > 8;
+      if (!cancelled && distance >= 55) revealInvitation();
+    }
+    pullTab.addEventListener('pointerup', event => finishDrag(event));
+    pullTab.addEventListener('pointercancel', event => finishDrag(event, true));
+    pullTab.addEventListener('lostpointercapture', event => finishDrag(event, true));
+
+    function localDateString(date) {
+      const pad = number => String(number).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+    dateInput.min = localDateString(new Date());
+    dateInput.max = localDateString(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000));
+    const datePicker = document.getElementById('date-picker');
+    const dateCaption = document.getElementById('date-caption');
+    const calendar = document.getElementById('calendar');
+    const calendarGrid = document.getElementById('calendar-grid');
+    const monthCaption = document.getElementById('calendar-month');
+    const previousMonth = document.getElementById('previous-month');
+    const nextMonth = document.getElementById('next-month');
+    let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    function updateTimeLimits() {
+      const now = new Date();
+      const limit = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+      const hhmm = date => `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+      timeInput.min = dateInput.value === localDateString(now) ? hhmm(now) : '';
+      timeInput.max = dateInput.value === localDateString(limit) ? hhmm(limit) : '';
+    }
+    function closeCalendar() {
+      calendar.hidden = true;
+      datePicker.setAttribute('aria-expanded', 'false');
+    }
+    function renderCalendar() {
+      const today = localDateString(new Date());
+      const limit = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+      const lastDay = localDateString(limit);
+      nextMonth.disabled = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1) > limit;
+      monthCaption.textContent = calendarMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+      previousMonth.disabled = calendarMonth <= new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      calendarGrid.replaceChildren();
+      const offset = (calendarMonth.getDay() + 6) % 7;
+      for (let i = 0; i < offset; i++) calendarGrid.appendChild(document.createElement('span'));
+      const days = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate();
+      for (let day = 1; day <= days; day++) {
+        const date = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+        const value = localDateString(date);
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'calendar-day';
+        button.textContent = day;
+        button.disabled = value < today || value > lastDay;
+        button.setAttribute('aria-label', date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+        button.setAttribute('aria-pressed', String(dateInput.value === value));
+        if (value === today) button.classList.add('today');
+        if (dateInput.value === value) button.classList.add('selected');
+        button.addEventListener('click', () => {
+          dateInput.value = value;
+          updateTimeLimits();
+          celebrateSelection();
+          dateCaption.textContent = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+          errorMessage.hidden = true;
+          closeCalendar();
+          datePicker.focus({ preventScroll: true });
+        });
+        calendarGrid.appendChild(button);
+      }
+    }
+    datePicker.addEventListener('click', () => {
+      if (sending) return;
+      if (!calendar.hidden) { closeCalendar(); return; }
+      closeTime();
+      const chosen = dateInput.value ? new Date(`${dateInput.value}T12:00`) : new Date();
+      calendarMonth = new Date(chosen.getFullYear(), chosen.getMonth(), 1);
+      renderCalendar();
+      calendar.hidden = false;
+      datePicker.setAttribute('aria-expanded', 'true');
+    });
+    previousMonth.addEventListener('click', () => {
+      if (previousMonth.disabled) return;
+      calendarMonth.setMonth(calendarMonth.getMonth() - 1);
+      renderCalendar();
+    });
+    nextMonth.addEventListener('click', () => {
+      if (nextMonth.disabled) return;
+      calendarMonth.setMonth(calendarMonth.getMonth() + 1);
+      renderCalendar();
+    });
+    document.addEventListener('click', event => {
+      if (!calendar.hidden && !calendar.contains(event.target) && !datePicker.contains(event.target)) closeCalendar();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !calendar.hidden) { closeCalendar(); datePicker.focus({ preventScroll: true }); }
+    });
+
+    // Координаты выбираются в пределах видимой области. Кнопка не закрывает
+    // «Да» и не остаётся под пальцем/курсором. На телефоне учтена visualViewport.
+    function runAway(event) {
+      if (question.hidden || transitioning || escapeCount >= 6 || noButton.hidden) return;
+      if (event && event.cancelable) event.preventDefault();
+      if (event) {
+        escapeCount++;
+        if (escapeCount === 6) {
+          document.getElementById('no-label').textContent = 'Да';
+          noButton.classList.add('accepted');
+          burstHearts(noButton);
+          return;
+        }
+        yesButton.style.setProperty('--yes-scale', String(1 + escapeCount * .06));
+      }
+      const viewport = window.visualViewport;
+      const left = window.scrollX + (viewport ? viewport.offsetLeft : 0);
+      const top = window.scrollY + (viewport ? viewport.offsetTop : 0);
+      const width = viewport ? viewport.width : window.innerWidth;
+      const height = viewport ? viewport.height : window.innerHeight;
+      const rect = noButton.getBoundingClientRect();
+      const yes = yesButton.getBoundingClientRect();
+      const margin = 14;
+      const maxX = Math.max(margin, width - rect.width - margin);
+      const maxY = Math.max(margin, height - rect.height - margin);
+      const touch = event && event.touches && event.touches[0];
+      const pointerX = touch ? touch.clientX : event && event.clientX;
+      const pointerY = touch ? touch.clientY : event && event.clientY;
+      let x = margin, y = margin;
+      for (let attempt = 0; attempt < 80; attempt++) {
+        x = margin + Math.random() * (maxX - margin);
+        y = margin + Math.random() * (maxY - margin);
+        const clientX = x + left - window.scrollX;
+        const clientY = y + top - window.scrollY;
+        const overlapsYes = clientX < yes.right + 18 && clientX + rect.width > yes.left - 18 && clientY < yes.bottom + 18 && clientY + rect.height > yes.top - 18;
+        const nearPointer = Number.isFinite(pointerX) && Number.isFinite(pointerY) && clientX < pointerX + 50 && clientX + rect.width > pointerX - 50 && clientY < pointerY + 50 && clientY + rect.height > pointerY - 50;
+        if (!overlapsYes && !nearPointer) break;
+      }
+      if (!noButton.classList.contains('escaped')) document.body.appendChild(noButton);
+      noButton.classList.add('escaped');
+      noButton.style.left = `${left + x}px`;
+      noButton.style.top = `${top + y}px`;
+
+    }
+
+    noButton.addEventListener('mouseenter', runAway);
+    noButton.addEventListener('touchstart', runAway, { passive: false });
+    noButton.addEventListener('click', event => { if (escapeCount >= 6) acceptInvitation(); else runAway(event); });
+    window.addEventListener('resize', () => { if (noButton.classList.contains('escaped')) runAway(); });
+
+    async function showScreen(from, to) {
+      if (transitioning) return;
+      transitioning = true;
+      from.inert = true;
+      from.classList.add('leaving');
+      if (!reducedMotion.matches) await new Promise(resolve => setTimeout(resolve, 180));
+      from.hidden = true;
+      from.classList.remove('leaving');
+      to.hidden = false;
+      to.inert = false;
+      to.classList.add('entering');
+      to.querySelector('h1, h2')?.focus({ preventScroll: true });
+      if (!reducedMotion.matches) await new Promise(resolve => setTimeout(resolve, 320));
+      to.classList.remove('entering');
+      transitioning = false;
+    }
+
+    function acceptInvitation() {
+      if (transitioning || question.hidden) return;
+      noButton.hidden = true;
+      showScreen(question, schedule);
+    }
+    yesButton.addEventListener('click', acceptInvitation);
+
+    function burstHearts(target) {
+      if (reducedMotion.matches) return;
+      const rect = target.getBoundingClientRect();
+      const layer = document.createElement('div');
+      layer.className = 'burst-layer';
+      layer.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(layer);
+      setTimeout(() => layer.remove(), 900);
+      for (let i = 0; i < 12; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'burst-heart';
+        heart.textContent = '♥';
+        heart.setAttribute('aria-hidden', 'true');
+        heart.style.left = `${rect.left + rect.width / 2}px`;
+        heart.style.top = `${rect.top + rect.height / 2}px`;
+        const angle = i / 12 * Math.PI * 2;
+        heart.style.setProperty('--dx', `${Math.cos(angle) * (60 + Math.random() * 35)}px`);
+        heart.style.setProperty('--dy', `${Math.sin(angle) * 65 - 35}px`);
+        heart.style.setProperty('--spin', `${Math.random() * 60 - 30}deg`);
+        layer.appendChild(heart);
+      }
+    }
+    let celebratedSelection = '';
+    function celebrateSelection() {
+      if (!dateInput.value || !timeInput.value) return;
+      const chosen = new Date(`${dateInput.value}T${timeInput.value}`);
+      if (!Number.isFinite(chosen.getTime()) || chosen <= new Date() || chosen.getTime() > Date.now() + 14 * 86400000) return;
+      const key = `${dateInput.value} ${timeInput.value}`;
+      if (key === celebratedSelection) return;
+      celebratedSelection = key;
+      burstHearts(submitButton);
+    }
+    const timePicker = document.getElementById('time-picker');
+    const timePanel = document.getElementById('time-panel');
+    const timeCaption = document.getElementById('time-caption');
+    const timeApply = document.getElementById('time-apply');
+    let draftMinutes = 18 * 60;
+    function closeTime() { timePanel.hidden = true; timePicker.setAttribute('aria-expanded', 'false'); }
+    function draftTime() { return `${String(Math.floor(draftMinutes / 60)).padStart(2, '0')}:${String(draftMinutes % 60).padStart(2, '0')}`; }
+    function renderTime() {
+      const value = draftTime();
+      document.getElementById('hour-value').textContent = value.slice(0, 2);
+      document.getElementById('minute-value').textContent = value.slice(3);
+      const chosen = new Date(`${dateInput.value}T${value}`);
+      const valid = !dateInput.value || (chosen > new Date() && chosen.getTime() <= Date.now() + 14 * 86400000);
+      timeApply.disabled = !valid;
+      document.getElementById('time-note').textContent = valid ? 'Время в твоём часовом поясе' : 'Выбери будущее время в ближайшие 14 дней';
+    }
+    timePicker.addEventListener('click', () => {
+      if (sending) return;
+      if (!timePanel.hidden) { closeTime(); return; }
+      closeCalendar();
+      if (timeInput.value) { const [h, m] = timeInput.value.split(':').map(Number); draftMinutes = h * 60 + m; }
+      renderTime();
+      timePanel.hidden = false;
+      timePicker.setAttribute('aria-expanded', 'true');
+    });
+    for (const [id, change] of [['hour-up', 60], ['hour-down', -60], ['minute-up', 5], ['minute-down', -5]]) {
+      document.getElementById(id).addEventListener('click', () => { draftMinutes = (draftMinutes + change + 1440) % 1440; renderTime(); });
+    }
+    timeApply.addEventListener('click', () => {
+      if (sending || timeApply.disabled) return;
+      timeInput.value = draftTime();
+      timeCaption.textContent = timeInput.value;
+      errorMessage.hidden = true;
+      closeTime();
+      timePicker.focus({ preventScroll: true });
+      celebrateSelection();
+    });
+    document.addEventListener('click', event => { if (!timePanel.hidden && !timePanel.contains(event.target) && !timePicker.contains(event.target)) closeTime(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !timePanel.hidden) { closeTime(); timePicker.focus({ preventScroll: true }); } });
+
+    // Токен хранится только на сервере. В браузер передаём дату и время.
+    async function sendToTelegram(date, time) {
+      const dateTime = new Date(`${date}T${time}`);
+      const formattedDate = dateTime.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+      try {
+        const response = await fetch('/api/invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, time, instant: dateTime.toISOString(), timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+          signal: controller.signal
+        });
+        const result = await response.json();
+        if (!response.ok || result.ok !== true) throw new Error(result.message || 'Не удалось отправить сообщение в Telegram.');
+        return formattedDate;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (sending || transitioning || !form.reportValidity()) return;
+      const date = dateInput.value;
+      const time = timeInput.value;
+      if (!date) {
+        errorMessage.textContent = 'Сначала выбери день ♡';
+        errorMessage.hidden = false;
+        datePicker.focus({ preventScroll: true });
+        return;
+      }
+      if (!time) { errorMessage.textContent = 'Выбери время ♡'; errorMessage.hidden = false; timePicker.focus({ preventScroll: true }); return; }
+      const chosen = new Date(`${date}T${time}`);
+      dateInput.min = localDateString(new Date());
+      errorMessage.hidden = true;
+      updateTimeLimits();
+      if (!Number.isFinite(chosen.getTime()) || chosen <= new Date() || chosen.getTime() > Date.now() + 14 * 24 * 60 * 60 * 1000) {
+        errorMessage.textContent = 'Выбери будущее время в ближайшие 14 дней ♡';
+        errorMessage.hidden = false;
+        return;
+      }
+      closeCalendar();
+      closeTime();
+      sending = true;
+      timePicker.disabled = true;
+      datePicker.disabled = true;
+      submitButton.disabled = true;
+      dateInput.disabled = true;
+      timeInput.disabled = true;
+      submitButton.textContent = 'Отправляю…';
+      try {
+        const formattedDate = await sendToTelegram(date, time);
+        receipt.textContent = `${formattedDate} · ${time}`;
+        await showScreen(schedule, success);
+      } catch (error) {
+        errorMessage.textContent = error.name === 'AbortError'
+          ? 'Не удалось дождаться ответа. Проверь, пришло ли сообщение, прежде чем отправить ещё раз.'
+          : error instanceof TypeError
+            ? 'Не удалось связаться с Telegram. Проверь интернет и попробуй снова.'
+            : error.message;
+        errorMessage.hidden = false;
+      } finally {
+        sending = false;
+        timePicker.disabled = false;
+        datePicker.disabled = false;
+        submitButton.disabled = false;
+        dateInput.disabled = false;
+        timeInput.disabled = false;
+        submitButton.textContent = 'Подтвердить';
+      }
+    });
+  </script>
+</body>
+</html>

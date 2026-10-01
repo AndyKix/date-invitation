@@ -1,0 +1,10 @@
+{
+  "name": "date-invitation",
+  "private": true,
+  "scripts": {
+    "build": "node -e \"require('fs').mkdirSync('public',{recursive:true});require('fs').copyFileSync('index.html','public/index.html')\""
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

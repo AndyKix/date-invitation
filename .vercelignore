@@ -1,0 +1,7 @@
+.env*
+.git/
+server.py
+tools/
+__pycache__/
+README.md
+LICENSE

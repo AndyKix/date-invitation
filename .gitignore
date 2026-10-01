@@ -1,0 +1,8 @@
+.vercel/
+.env*
+!.env.example
+node_modules/
+public/
+.DS_Store
+__pycache__/
+*.pyc
